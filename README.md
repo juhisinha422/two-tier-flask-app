@@ -1,15 +1,34 @@
- 
-# Flask App with MySQL Docker Setup
+## 🚀Two-Tier Flask App with MySQL Database on Kubernetes
 
-This is a simple Flask app that interacts with a MySQL database. The app allows users to submit messages, which are then stored in the database and displayed on the frontend.
+This project demonstrates setting up a **Kubernetes cluster** on **AWS EC2 instances**, deploying a **MySQL database**, and integrating it with a **two-tier application**.
 
+ ![Flask App](Images/flask-app.png)
+
+## MySql Databse 
+![MySQL Database](Images/mysql-database.png) 
 ## Prerequisites
 
 Before you begin, make sure you have the following installed:
 
 - Docker
-- Git (optional, for cloning the repository)
+- Github (optional, for cloning the repository)
+- AWS Account 
 
+## Steps
+
+### ✅ Step 1: Set Up EC2 Instances (Master & Worker)
+1. Launch two EC2 instances: one for the **Master Node** and one for the **Worker Node**.
+2. Configure **Security Groups** to allow communication between the nodes.
+
+### ✅ Step 2: Install Kubernetes using Kubeadm
+1. Install **Kubeadm** on both the Master and Worker nodes.
+2. Initialize the **Master node** with `kubeadm init` and configure **kubectl**.
+3. Join the **Worker node** to the cluster using `kubeadm join`.
+4. Check if both nodes are connected with `kubectl get nodes`.
+
+For detailed installation steps, refer to the [Kubeadm Installation Documentation](https://github.com/LondheShubham153/kubestarter/tree/main/Kubeadm_Installation_Scripts_and_Documentation).
+
+### ✅ Step 3: Set Up Docker and Docker Compose ( just to verify that app is working or not)
 ## Setup
 
 1. Clone this repository (if you haven't already):
@@ -120,11 +139,44 @@ docker run -d \
 
 - Make sure to replace placeholders (e.g., `your_username`, `your_password`, `your_database`) with your actual MySQL configuration.
 
-- This is a basic setup for demonstration purposes. In a production environment, you should follow best practices for security and performance.
 
-- Be cautious when executing SQL queries directly. Validate and sanitize user inputs to prevent vulnerabilities like SQL injection.
 
-- If you encounter issues, check Docker logs and error messages for troubleshooting.
+### ✅ Step 4: Create Kubernetes YAML Files
 
+This step involves creating YAML files to define and deploy the MySQL database and two-tier application on Kubernetes.
+
+#### **MySQL Deployment**
+1. **`mysql-deployment.yml`**: Defines the MySQL container, environment variables, and resource limits.
+2. **`mysql-pv.yml` (Persistent Volume)**: Defines the storage for MySQL, ensuring data persists even if the Pod restarts.
+3. **`mysql-pvc.yml` (Persistent Volume Claim)**: Requests the storage defined in `mysql-pv.yml` for MySQL. This ensures MySQL data is stored persistently.
+4. **`mysql-svc.yml`**: Exposes MySQL to the two-tier application and other services within the cluster.
+
+#### **Two-Tier Application Deployment**
+1. **`two-tier-app-deployment.yml`**: Defines the deployment for the two-tier application (front-end and back-end).
+2. **`two-tier-app-pod.yml`**: Defines the Pod for the application and its configuration.
+3. **`two-tier-app-svc.yml`**: Exposes the application to external clients or other services.
+
+#### **Why PVCs Matter**
+- **Persistence**: PVCs ensure MySQL data remains even when Pods restart.
+- **Storage Abstraction**: PVCs decouple storage from Pods, making it easier to manage and scale storage.
+
+Once all YAML files are created, apply them with `kubectl`:
+```bash
+kubectl apply -f <file_name>.yml
 ```
 
+### ✅ Security Group Setup
+
+1. **Enable Inbound Rule for Port 30004**:
+   - Go to your EC2 instances in the AWS Management Console.
+   - Navigate to **Security Groups** and select the security group associated with your EC2 instances.
+   - Add an **Inbound rule** to allow TCP traffic on port **30004** to make your application accessible externally.
+   
+2. **Verify Security Group Rules**:
+   - Ensure that the inbound rule allows traffic from your IP or the public internet (0.0.0.0/0) depending on your security requirements.
+     
+![Security Groups](Images/security-groups.png)
+     
+### Your application is now running! 🎉
+
+You can access the Flask application through the exposed port on your EC2 instance. Open your browser and navigate to http://<EC2_Instance_IP>:30004 to see the app in action. 
